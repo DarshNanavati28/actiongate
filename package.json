@@ -1,0 +1,15 @@
+{
+  "name": "actiongate",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fail-closed authorization gateway for AI agent actions",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "check": "node --check src/server.js && node --check src/policy.js && node --check src/ledger.js"
+  },
+  "license": "MIT"
+}

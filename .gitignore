@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.vercel/
+data/state.json
+data/state.json.tmp
+data/audit.jsonl
+*.log
+.DS_Store
+Thumbs.db

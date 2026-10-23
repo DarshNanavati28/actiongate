@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="description" content="ActionGate authorization gateway demo for AI agent actions.">
+  <title>ActionGate — Action authorization</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <div class="app-frame">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="ActionGate home">
+        <span class="brand-mark"><i></i><i></i><i></i><i></i></span>
+        <span>action<span class="brand-soft">gate</span></span>
+      </a>
+      <div class="workspace-label">WORKSPACE</div>
+      <div class="workspace-switch">
+        <span class="workspace-icon">A</span>
+        <span class="workspace-copy"><b>Acme Workspace</b><small>Security operations</small></span>
+        <span class="chevron">⌄</span>
+      </div>
+      <div class="nav-label">GOVERNANCE</div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span>Overview</button>
+        <button class="nav-item" data-view="queue"><span class="nav-icon">▤</span>Action queue<span class="nav-count" id="nav-pending">0</span></button>
+        <button class="nav-item" data-view="policies"><span class="nav-icon">◇</span>Policies</button>
+        <button class="nav-item" data-view="audit"><span class="nav-icon">≋</span>Audit trail</button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="integrity-icon" id="sidebar-integrity-icon">✓</div>
+        <div><b id="sidebar-integrity-title">Ledger checking</b><small id="sidebar-integrity-note">Verifying event chain</small></div>
+      </div>
+      <div class="sidebar-version">ACTIONGATE <span>v1.0</span></div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="breadcrumb"><span>Acme Workspace</span><span class="crumb-slash">/</span><b id="topbar-section">Overview</b></div>
+        <div class="topbar-tools">
+          <div class="mode-pill"><span class="pulse-dot"></span><span id="runtime-mode">Demo mode</span></div>
+          <label class="select-shell actor-select"><span>Acting as</span>
+            <select id="actor-select" aria-label="Current demo identity">
+              <option value="maya.chen">Maya Chen · Security</option>
+              <option value="lena.ortiz">Lena Ortiz · Requester</option>
+              <option value="omar.singh">Omar Singh · Operations</option>
+            </select>
+          </label>
+          <div class="avatar" id="avatar">MC</div>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section class="view-section active" id="view-overview">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-line"></span>GOVERNED EXECUTION</div>
+              <h1>Action authorization</h1>
+              <p class="page-subtitle">Every agent action passes through policy before it can run.</p>
+            </div>
+            <button class="button button-primary" id="new-request"><span class="plus">＋</span> Submit action</button>
+          </div>
+
+          <div class="demo-banner">
+            <span class="banner-mark">i</span>
+            <div><b>Prototype environment</b><span>Execution is simulated. The browser demo is not a production security boundary.</span></div>
+            <label class="advisory-select"><span>Advisory path</span>
+              <select id="advisory-mode" aria-label="Demo advisory state">
+                <option value="unavailable">Unavailable</option>
+                <option value="unusable">Unusable output</option>
+                <option value="simulated">Simulated advisory</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card"><div class="metric-head"><span>Requests today</span><span class="metric-icon blue">↗</span></div><div class="metric-value" id="metric-total">0</div><div class="metric-foot"><span class="metric-neutral">All evaluated</span><span class="metric-caption">Decision history</span></div></article>
+            <article class="metric-card"><div class="metric-head"><span>Held for approval</span><span class="metric-icon amber">◷</span></div><div class="metric-value" id="metric-held">0</div><div class="metric-foot"><span class="metric-warn">Needs review</span><span class="metric-caption">Human decision</span></div></article>
+            <article class="metric-card"><div class="metric-head"><span>Blocked by policy</span><span class="metric-icon red">⊘</span></div><div class="metric-value" id="metric-blocked">0</div><div class="metric-foot"><span class="metric-danger">Fail-closed</span><span class="metric-caption">No execution path</span></div></article>
+            <article class="metric-card"><div class="metric-head"><span>Ledger integrity</span><span class="metric-icon green">✓</span></div><div class="metric-value metric-integrity" id="metric-integrity">Checking</div><div class="metric-foot"><span class="metric-good" id="integrity-caption">Hash chain</span><span class="metric-caption">Tamper-evident</span></div></article>
+          </div>
+
+          <div class="section-title-row">
+            <div><h2>Decision workspace</h2><p>Review proposed actions and their exact authorized payload.</p></div>
+            <div class="queue-filters" role="tablist" aria-label="Filter requests">
+              <button class="filter-tab active" data-filter="all">All <span id="count-all">0</span></button>
+              <button class="filter-tab" data-filter="held">Held <span id="count-held">0</span></button>
+              <button class="filter-tab" data-filter="blocked">Blocked <span id="count-blocked">0</span></button>
+              <button class="filter-tab" data-filter="allowed">Allowed <span id="count-allowed">0</span></button>
+            </div>
+          </div>
+
+          <div class="workspace-grid">
+            <section class="queue-card card">
+              <div class="card-topline"><div><span class="section-kicker">INCOMING ACTIONS</span><h3>Request queue</h3></div><span class="live-indicator"><i></i> Live</span></div>
+              <div class="request-list" id="request-list"></div>
+              <div class="queue-card-foot"><span class="tiny-shield">◇</span> Unknown agents and action types are denied by default.</div>
+            </section>
+            <section class="detail-card card" id="detail-card">
+              <div class="empty-detail"><span class="empty-glyph">⌁</span><h3>Select a request</h3><p>Action details and decision evidence will appear here.</p></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view-section" id="view-queue">
+          <div class="page-heading compact-heading">
+            <div><div class="eyebrow"><span class="eyebrow-line"></span>GOVERNANCE</div><h1>Action queue</h1><p class="page-subtitle">Inspect every proposed action before execution.</p></div>
+            <button class="button button-primary" id="new-request-queue"><span class="plus">＋</span> Submit action</button>
+          </div>
+          <div class="full-queue card">
+            <div class="card-topline"><div><span class="section-kicker">ALL REQUESTS</span><h3>Recent decisions</h3></div><span class="queue-total" id="queue-total">0 actions</span></div>
+            <div class="table-scroll"><table><thead><tr><th>Action</th><th>Agent</th><th>Requester</th><th>Outcome</th><th>Decision path</th><th>Created</th></tr></thead><tbody id="queue-table"></tbody></table></div>
+          </div>
+        </section>
+
+        <section class="view-section" id="view-policies">
+          <div class="page-heading compact-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span>CONTROL PLANE</div><h1>Policies</h1><p class="page-subtitle">Explicit rules make the final authorization decision.</p></div><span class="policy-version" id="policy-version">POLICY —</span></div>
+          <div class="policy-callout"><span class="callout-icon">✦</span><div><b>Fail closed by default</b><p>Agent identity, action type, permission, impact and reversibility are checked before the gateway releases an action.</p></div></div>
+          <div class="policy-grid" id="policy-grid"></div>
+          <div class="policy-bottom-grid">
+            <article class="card principle-card"><div class="principle-icon teal">01</div><div><h3>Exact action approval</h3><p>Approval binds to a SHA-256 fingerprint of the complete proposal. A revision creates a new fingerprint and requires fresh authorization.</p></div></article>
+            <article class="card principle-card"><div class="principle-icon violet">02</div><div><h3>Human separation</h3><p>The requester cannot approve their own action. A self-approval attempt is refused and added to the audit history.</p></div></article>
+            <article class="card principle-card"><div class="principle-icon amber">03</div><div><h3>Safe without AI</h3><p>Unavailable or invalid advisory output falls back to explicit rules. Each decision records whether advisory or policy-only logic produced it.</p></div></article>
+          </div>
+        </section>
+
+        <section class="view-section" id="view-audit">
+          <div class="page-heading compact-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span>ACCOUNTABILITY</div><h1>Audit trail</h1><p class="page-subtitle">Decisions, refusals and approvals are linked in a verifiable event chain.</p></div><div class="audit-actions"><button class="button button-secondary" id="export-audit">Export JSON</button><button class="button button-primary" id="verify-audit">Verify integrity <span>↗</span></button></div></div>
+          <div class="audit-status card"><div class="audit-status-left"><div class="integrity-large" id="audit-status-icon">✓</div><div><span class="section-kicker">CHAIN VERIFICATION</span><h3 id="audit-status-title">Checking events…</h3><p id="audit-status-copy">Verifying event hashes and current request snapshots.</p></div></div><div class="audit-stats"><div><b id="audit-event-count">0</b><span>Events</span></div><div><b>SHA-256</b><span>Link algorithm</span></div></div></div>
+          <div class="audit-note"><span>ⓘ</span><p>The local demo detects edits to saved events and request snapshots. Production use needs authenticated identities and an independently protected append-only ledger.</p></div>
+          <div class="card audit-table-card"><div class="card-topline"><div><span class="section-kicker">IMMUTABLE HISTORY</span><h3>Decision events</h3></div><span class="chain-label"><span class="chain-dot"></span> Linked chain</span></div><div class="table-scroll"><table><thead><tr><th>Event</th><th>Action</th><th>Actor</th><th>Decision path</th><th>Time</th><th>Hash</th></tr></thead><tbody id="audit-table"></tbody></table></div></div>
+        </section>
+      </div>
+      <footer class="main-footer"><span>ActionGate <i>·</i> Governed agent execution</span><span id="footer-status">Local simulation · no external actions</span></footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="request-modal" hidden>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head"><div><span class="section-kicker">NEW PROPOSAL</span><h2 id="modal-title">Submit an action</h2></div><button class="icon-button" id="close-modal" aria-label="Close dialog">×</button></div>
+      <p class="modal-intro">The gateway evaluates the exact arguments before any simulated execution.</p>
+      <form id="request-form">
+        <div class="form-grid">
+          <label>Agent identity<select id="form-agent"><option value="crm-cleanup">crm-cleanup</option><option value="support-agent">support-agent</option><option value="billing-agent">billing-agent</option><option value="marketing-agent">marketing-agent</option><option value="unregistered-agent">unregistered-agent</option></select></label>
+          <label>Action type<select id="form-action"><option value="delete_records">Delete records</option><option value="send_message">Send message</option><option value="update_account">Update account</option><option value="issue_refund">Issue refund</option><option value="unknown_action">Unknown action (test deny)</option></select></label>
+          <label class="form-wide">Intent description<input id="form-description" maxlength="1000" required value="Remove duplicate inactive customer records"></label>
+          <label class="form-wide">Target<input id="form-target" maxlength="240" required value="customer-records / inactive-duplicates"></label>
+          <div class="form-args form-wide" id="form-args">
+            <label class="arg-delete">Records affected<input id="form-record-count" type="number" min="1" step="1" value="48"></label>
+            <label class="arg-message">Recipients<input id="form-recipient-count" type="number" min="1" step="1" value="1"></label>
+            <label class="arg-message">Recipient scope<select id="form-external"><option value="true">External</option><option value="false">Internal</option></select></label>
+            <label class="arg-update">Fields to change<input id="form-fields" value="phone" placeholder="phone, timezone"></label>
+            <label class="arg-refund">Refund amount (USD)<input id="form-amount" type="number" min="0.01" step="0.01" value="1250"></label>
+          </div>
+          <label class="toggle-field"><input id="form-reversible" type="checkbox"><span class="toggle-mark"></span><span><b>Action can be reversed</b><small>Unchecked actions may require approval or be blocked.</small></span></label>
+          <label class="form-wide">Untrusted text or context<textarea id="form-context" rows="3" maxlength="4000" placeholder="Optional. Treated as data; cannot grant permissions."></textarea></label>
+        </div>
+        <div class="modal-error" id="form-error" role="alert" hidden></div>
+        <div class="modal-actions"><button type="button" class="button button-secondary" id="cancel-modal">Cancel</button><button type="submit" class="button button-primary">Evaluate action <span>→</span></button></div>
+      </form>
+    </section>
+  </div>
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+</body>
+</html>
